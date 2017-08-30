@@ -83,6 +83,7 @@ class CF(object):
                     pass
             else:
                 email, self.user_key = _
+                self.user_key = self.user_key.strip()
                 log("Login as %s", email)
 
     def _api(self, act, extra={}):
