@@ -8,12 +8,16 @@ To use Chinese menu, set environment variable `LANG` to use **UTF-8** (for examp
 
 ### Usage
 
-1. Apply for partner program at https://www.cloudflare.com/partners/
-2. Clone this repository or [download script](https://github.com/fffonion/cloudflare-partner-cli/raw/master/cloudflare-partner-cli.py)
-3. Run `python ./cloudflare-partner-cli.py`
-4. Enter your `host_key`. You can get it [here](https://partners.cloudflare.com/api-management)
+1. Apply for partner program at https://www.cloudflare.com/partners/.
+2. Clone this repository or [download script](https://github.com/fffonion/cloudflare-partner-cli/raw/master/cloudflare-partner-cli.py).
+3. Run `python ./cloudflare-partner-cli.py`.
+4. Enter your `host_key`. You can get it [here](https://partners.cloudflare.com/api-management).
 5. Enter the account you use to manage domains (your personal account, not partner login account). User key is stored in `.cfhost`.
 6. Follow the instructions on screen.
+
+### Note
+
+- Value of `resolve_to` has to be DNS record (for example: **google.com**) instead of IP address.
 
 # Cloudflare Partner CLI
 
@@ -25,9 +29,13 @@ To use Chinese menu, set environment variable `LANG` to use **UTF-8** (for examp
 
 ### 使用方法
 
-1. 申请Cloudflare partner计划 https://www.cloudflare.com/partners/
-2. clone本项目或者[直接下载脚本](https://github.com/fffonion/cloudflare-partner-cli/raw/master/cloudflare-partner-cli.py)
-3. 运行 `python ./cloudflare-partner-cli.py`
+1. 申请Cloudflare partner计划 https://www.cloudflare.com/partners/ 。
+2. clone本项目或者[直接下载脚本](https://github.com/fffonion/cloudflare-partner-cli/raw/master/cloudflare-partner-cli.py)。
+3. 运行 `python ./cloudflare-partner-cli.py`。
 4. 输入 `host_key`。可以从[这里](https://partners.cloudflare.com/api-management)获得。
-5. 输入要用来管理域名的账号 (你的个人账号，不是partner账号)。账户信息保存在`.cfhost`文件中
+5. 输入要用来管理域名的账号 (你的个人账号，不是partner账号)。账户信息保存在`.cfhost`文件中。
 6. 按照屏幕提示操作。
+
+### 注意
+
+- `源站地址`必须为DNS记录，如**google.com**，不能填写IP地址。
