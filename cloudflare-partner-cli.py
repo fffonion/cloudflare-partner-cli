@@ -52,6 +52,9 @@ I18N = {
     "Subdomain": "子域名",
     "Resolve to": "源站地址",
     "Login as %s": "%s 已登录",
+    "vetting": "审批中",
+    "validating": "等待验证",
+    "ready": "已启用",
     "Select your action:": "选择所需的操作，输入数字：",
     "Missing required arg \"%s\". (act:%s)": "缺少参数 \"%s\". (act:%s)",
     "Login failed, msg: %s": "登录失败: %s",
@@ -60,7 +63,7 @@ I18N = {
     "%s (act: %s)": "报错: %s (act: %s) ",
     "Please enter your Cloudflare partner hostkey (https://partners.cloudflare.com/api-management)> ":
         "请输入 Cloudflare hostkey (https://partners.cloudflare.com/api-management)> ",
-    "SSL status: %s, SSL meta tag:%s": "SSL状态: %s, SSL meta 标签: %s",
+    "SSL status: %s": "SSL状态: %s",
     "Please login first. (uri: %s)": "请先登录. (uri: %s)",
     "Please login first. (act: %s)": "请先登录. (act: %s)",
     "No zone found matching %s. Please use zone_set first.": "账户中不存在域名%s, 请先添加域名",
@@ -74,6 +77,7 @@ I18N = {
     "If you want to activate SSL, please set CNAME record of %s to %s and " \
         "run this \"ssl_verfication\" after record become effective":
             "如果需要启用SSL, 请将%s的CNAME记录设置为%s, 然后在解析生效后运行一次\"开通SSL\"",
+    "Zone %s not exists or is not under user %s": "域名%s不存在，或者不属于用户%s",
 }
 
 def i18n(s):
@@ -235,10 +239,10 @@ class CF(object):
     
     @catch_err
     def _zone_list(self, j):
-        print("%24s%24s" % (i18n("Zone"), i18n("User")))
+        print("%-24s%-24s" % (i18n("Zone"), i18n("User")))
         print("-" * 80)
         for z in j['response']:
-            print("%24s%24s" % (z['zone_name'], z['user_email']))
+            print("%-24s%-24s" % (z['zone_name'], z['user_email']))
     
     @catch_err
     def _zone_set(self, j, resolve=None):
@@ -253,9 +257,10 @@ class CF(object):
 
     @catch_err
     def _zone_lookup(self, j):
-        log("SSL status: %s, SSL meta tag:%s", (
-            j['response']['ssl_status'].encode('utf-8'),
-            j['response']['ssl_meta_tag'].encode('utf-8') if j['response']['ssl_meta_tag'] else None))
+        if not j['response']['zone_exists']:
+            log("Zone %s not exists or is not under user %s", (j['request']['zone_name'], self.user_email))
+            return
+        log("SSL status: %s", (i18n(j['response']['ssl_status'].encode('utf-8').decode('ascii'))))
         print("%-32s%-24s%-32s" % (i18n("Subdomain"), i18n("Resolve to"), i18n("CNAME")))
         print("-" * 80)
         tos = j['response']['forward_tos']
