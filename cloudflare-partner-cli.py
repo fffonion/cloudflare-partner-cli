@@ -139,8 +139,10 @@ class CF(object):
         else:
             payload = urlencode(payload)
         req  = urllib2.Request("https://api.cloudflare.com/host-gw.html", payload)
-        r = urllib2.urlopen(req)
-        return json.loads(r.read())
+        r = urllib2.urlopen(req).read()
+        if PY3K and isinstance(r, bytes):
+            r = r.decode('ascii')
+        return json.loads(r)
     
     def _userapi(self, uri, method="GET", extra={}):
         if not self.user_api_key:
@@ -158,7 +160,11 @@ class CF(object):
         for k, v in headers.items():
             req.add_header(k, v)
         req.get_method = lambda: method
-        r = opener.open(req)
+        r = opener.open(req).read()
+        if PY3K and isinstance(r, bytes):
+            r = r.decode('ascii')
+        return json.loads(r)
+
         return json.loads(r.read())
 
     def user_auth(self, arg):
@@ -205,8 +211,13 @@ class CF(object):
     def add_subdomain(self, arg):
         r = self._hostapi("zone_lookup", {"zone_name": arg['zone_name']})
         hosted = r['response']['hosted_cnames']
+        if not hosted:
+            log("No zone found matching %s. Please use zone_set first.", arg['zone_name'], "ERR")
+            return
         # concat a real subdomain
-        if arg['subdomains'].lower().endswith(arg['zone_name'].lower()):
+        if arg['subdomains'] == "@":
+            subdomain = arg['zone_name']
+        elif arg['subdomains'].lower().endswith(arg['zone_name'].lower()):
             subdomain = arg['subdomains']
         else:
             subdomain = "%s.%s" % (arg['subdomains'], arg['zone_name'])
@@ -223,8 +234,13 @@ class CF(object):
             return
         r = self._hostapi("zone_lookup", {"zone_name": arg['zone_name']})
         hosted = r['response']['hosted_cnames']
+        if not hosted:
+            log("No zone found matching %s. Please use zone_set first.", arg['zone_name'], "ERR")
+            return
         # concat a real subdomain
-        if arg['subdomains'].lower().endswith(arg['zone_name'].lower()):
+        if arg['subdomains'] == "@":
+            subdomain = arg['zone_name']
+        elif arg['subdomains'].lower().endswith(arg['zone_name'].lower()):
             subdomain = arg['subdomains']
         else:
             subdomain = "%s.%s" % (arg['subdomains'], arg['zone_name'])
@@ -270,8 +286,8 @@ class CF(object):
         ssl_cname, ssl_resolve_to = None, None
         for z in tos.keys():
             if hosted[z].endswith("comodoca.com"):
-                ssl_cname = z
-                ssl_resolve_to = hosted[z]
+                ssl_cname = z.encode('utf-8')
+                ssl_resolve_to = hosted[z].encode('utf-8')
                 continue
             print("%-32s%-24s%-32s" % (z, hosted[z], tos[z]))
         if ssl_cname:
@@ -333,5 +349,5 @@ if __name__ == '__main__':
             if not act:
                 continue
             getattr(cf, act)(arg)
-    except KeyboardInterrupt:
+    except (KeyboardInterrupt, EOFError):
         os._exit(0)
