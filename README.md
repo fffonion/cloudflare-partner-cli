@@ -18,6 +18,7 @@ To use Chinese menu, set environment variable `LANG` to use **UTF-8** (for examp
 ### Note
 
 - Value of `resolve_to` has to be DNS record (for example: **google.com**) instead of IP address.
+- You may still need to wait some time after running `ssl_verification`.
 
 # Cloudflare Partner CLI
 
@@ -39,3 +40,4 @@ To use Chinese menu, set environment variable `LANG` to use **UTF-8** (for examp
 ### 注意
 
 - `源站地址`必须为DNS记录，如**google.com**，不能填写IP地址。
+- 域名生效且运行`开通SSL`之后，仍需要等一段时间SSL证书才会生效
