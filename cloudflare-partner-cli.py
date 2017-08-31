@@ -210,10 +210,10 @@ class CF(object):
     
     def add_subdomain(self, arg):
         r = self._hostapi("zone_lookup", {"zone_name": arg['zone_name']})
-        hosted = r['response']['hosted_cnames']
-        if not hosted:
+        if 'hosted_cnames' not in r['response'] or not r['response']['hosted_cnames']:
             log("No zone found matching %s. Please use zone_set first.", arg['zone_name'], "ERR")
             return
+        hosted = r['response']['hosted_cnames']
         # concat a real subdomain
         if arg['subdomains'] == "@":
             subdomain = arg['zone_name']
@@ -233,10 +233,10 @@ class CF(object):
             log("Can't delete root record", (), "ERR")
             return
         r = self._hostapi("zone_lookup", {"zone_name": arg['zone_name']})
-        hosted = r['response']['hosted_cnames']
-        if not hosted:
+        if 'hosted_cnames' not in r['response'] or not r['response']['hosted_cnames']:
             log("No zone found matching %s. Please use zone_set first.", arg['zone_name'], "ERR")
             return
+        hosted = r['response']['hosted_cnames']
         # concat a real subdomain
         if arg['subdomains'] == "@":
             subdomain = arg['zone_name']
@@ -274,7 +274,8 @@ class CF(object):
     @catch_err
     def _zone_lookup(self, j):
         if not j['response']['zone_exists']:
-            log("Zone %s not exists or is not under user %s", (j['request']['zone_name'], self.user_email))
+            log("Zone %s not exists or is not under user %s",
+                (j['request']['zone_name'].encode('utf-8'), self.user_email))
             return
         log("SSL status: %s", (i18n(j['response']['ssl_status'].encode('utf-8').decode('ascii'))))
         print("%-32s%-24s%-32s" % (i18n("Subdomain"), i18n("Resolve to"), i18n("CNAME")))
