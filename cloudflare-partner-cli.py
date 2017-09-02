@@ -26,6 +26,7 @@ CFARG = {
     'add_subdomain':("zone_name", "subdomains", "resolve_to"),
     'delete_subdomain': ("zone_name", "subdomains"),
     'ssl_verfication': ("zone",),
+    'host_key_regen': (),
 }
 CFHOST_FILE = ".cfhost"
 
@@ -78,6 +79,7 @@ I18N = {
         "run this \"ssl_verfication\" after record become effective":
             "如果需要启用SSL, 请将%s的CNAME记录设置为%s, 然后在解析生效后运行一次\"开通SSL\"",
     "Zone %s not exists or is not under user %s": "域名%s不存在，或者不属于用户%s",
+    "Host key has been changed to %s": "Hostkey已更新为 %s",
 }
 
 def i18n(s):
@@ -106,7 +108,6 @@ class CF(object):
         self.user_email = None
         self.user_key = None
         self.user_api_key = None
-        self.host_key = HOSTKEY
         if os.path.exists(CFHOST_FILE):
             r = open(CFHOST_FILE).read()
             _ = r.split(",")
@@ -126,7 +127,7 @@ class CF(object):
             return
         payload = {
             "act": act,
-            "host_key": self.host_key,
+            "host_key": HOSTKEY,
         }
         if act not in ("user_auth", "host_key_regen"):
             payload.update({"user_key": self.user_key})
@@ -301,16 +302,19 @@ class CF(object):
     
     @catch_err
     def _host_key_regen(self, j):
-        pass
+        global HOSTKEY
+        HOSTKEY = j['request']['host_key']['__host_key'].encode('utf-8')
+        check_hostkey(force = True)
+        log("Host key has been changed to %s", HOSTKEY)
     
     def __getattr__(self, act, handle=True):
         if act not in CFARG:
             raise AttributeError("'CF' object has no attribute '%s'" % act)
         return lambda k={}:getattr(self, "_%s" % act)(self._hostapi(act, k))
 
-def check_hostkey():
+def check_hostkey(force = False):
     global HOSTKEY
-    if HOSTKEY and len(HOSTKEY) == 32:
+    if HOSTKEY and len(HOSTKEY) == 32 and not force:
         return
     while not HOSTKEY or len(HOSTKEY) != 32:
         HOSTKEY = raw_input(i18n("Please enter your Cloudflare partner hostkey (https://partners.cloudflare.com/api-management)> ")).strip()
