@@ -81,7 +81,10 @@ I18N = {
 }
 
 def i18n(s):
-    return I18N[s] if LOCALE[1] and LOCALE[1].lower() == "utf-8" and s in I18N else s
+    _ = I18N[s] if LOCALE[1] and LOCALE[1].lower() in ("utf-8", "cp936") and s in I18N else s
+    if LOCALE[1].lower() == "cp936" and not PY3K: # windows with simplified Chinese locale
+        return _.decode('utf-8').encode('gb18030')
+    return _
 
 def log(fmt, arg = (), level = "INFO"):
     if PY3K:
