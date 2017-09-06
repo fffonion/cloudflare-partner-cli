@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 #coding: utf-8
 import os
 import json
@@ -295,7 +296,7 @@ class CF(object):
                 ssl_resolve_to = hosted[z].encode('utf-8')
                 continue
             print("%-32s%-24s%-32s" % (z, hosted[z], tos[z]))
-        if ssl_cname:
+        if ssl_cname and j['response']['ssl_status'] != "ready":
             print("")
             log("If you want to activate SSL, please set CNAME record of %s to %s and " \
                 "run this \"ssl_verfication\" after record become effective", (ssl_cname, ssl_resolve_to))
