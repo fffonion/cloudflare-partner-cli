@@ -320,10 +320,12 @@ def check_hostkey(force = False):
     while not HOSTKEY or len(HOSTKEY) != 32:
         HOSTKEY = raw_input(i18n("Please enter your Cloudflare partner hostkey (https://partners.cloudflare.com/api-management)> ")).strip()
     import re
-    with open(__file__) as f:
+    with open(__file__, "rb") as f:
         script = f.read()
-    script = re.sub("HOSTKEY.+HOSTKEY_ANCHOR", "HOSTKEY = \"%s\" # HOSTKEY_ANCHOR" % HOSTKEY, script, count = 1)
-    with open(__file__, 'w') as f:
+    if PY3K:
+        HOSTKEY = HOSTKEY.encode('ascii')
+    script = re.sub(b"HOSTKEY.+HOSTKEY_ANCHOR", b"HOSTKEY = \"%s\" # HOSTKEY_ANCHOR" % HOSTKEY, script, count = 1)
+    with open(__file__, 'wb') as f:
         f.write(script)
 
 def menu(act = None):
