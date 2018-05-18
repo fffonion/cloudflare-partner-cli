@@ -53,10 +53,12 @@ I18N = {
     "User": "用户",
     "Subdomain": "子域名",
     "Resolve to": "源站地址",
+    "Content": "内容",
     "Login as %s": "%s 已登录",
     "vetting": "审批中",
     "validating": "等待验证",
     "ready": "已启用",
+    "none": "未知",
     "Select your action:": "选择所需的操作，输入数字：",
     "Missing required arg \"%s\". (act:%s)": "缺少参数 \"%s\". (act:%s)",
     "Login failed, msg: %s": "登录失败: %s",
@@ -73,6 +75,8 @@ I18N = {
     "??? %s": "喵喵喵？ %s",
     "Please set CNAME record of %s to %s and run this option again after record become effective":
         "请将%s的CNAME记录设置为%s, 然后在解析生效后再运行一次\"开通SSL\"",
+    "Please create a file with the following content and run this option again after record become effective:":
+        "请新建文件使下列URL能访问到指定的内容，然后再运行一次\"开通SSL\":",
     "Can't delete root record": "不能删除根域名",
     "Record %s is deleted": "DNS记录%s已删除",
     "Record %s is not found in zone %s": "记录%s不存在于域名%s中",
@@ -210,9 +214,18 @@ class CF(object):
             log("SSL for domain %s has already been activated.", arg['zone'])
             return True
         verification_info = r['result'][0]['verification_info']
-        log("Please set CNAME record of %s to %s and run this option again after record become effective", (
-            verification_info['record_name'].encode('utf-8'), verification_info['record_target'].encode('utf-8')))
-    
+        if 'record_name' in verification_info: # DNS verification
+            log("Please set CNAME record of %s to %s and run this option again after record become effective", (
+                verification_info['record_name'].encode('utf-8'), verification_info['record_target'].encode('utf-8')))
+        else: # HTTP verification
+            log("Please create a file with the following content and run this option again after record become effective:")
+            print("%-90s%s" % (i18n("URL"), i18n("Content")))
+            print("-" * 80)
+            print("\n".join(map(lambda x: "%-90s%s" % (
+                    x['verification_info']['http_url'],
+                    x['verification_info']['http_body']),
+                r['result'])))
+
     def add_subdomain(self, arg):
         r = self._hostapi("zone_lookup", {"zone_name": arg['zone_name']})
         if 'hosted_cnames' not in r['response'] or not r['response']['hosted_cnames']:
@@ -295,7 +308,7 @@ class CF(object):
                 ssl_cname = z.encode('utf-8')
                 ssl_resolve_to = hosted[z].encode('utf-8')
                 continue
-            print("%-32s%-24s%-32s" % (z, hosted[z], tos[z]))
+            print("%-32s%-32s%-32s" % (z, hosted[z], tos[z]))
         if ssl_cname and j['response']['ssl_status'] != "ready":
             print("")
             log("If you want to activate SSL, please set CNAME record of %s to %s and " \
@@ -330,7 +343,7 @@ def check_hostkey(force = False):
 
 def menu(act = None):
     if not act:
-        acts = [k for k in CFARG.keys() if k != "user_auth"] + ["logout"]
+        acts = [k for k in sorted(CFARG.keys()) if k != "user_auth"] + ["logout"]
         print("=" * 32)
         print(i18n("Select your action:"))
         for i in range(len(acts)):
